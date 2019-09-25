@@ -1,0 +1,214 @@
+import java.util.*;
+import java.io.*;
+
+public class lexicalanaylizer 
+{
+	// Character classes
+	static final int lttr = 1; //letter
+	static final int dgt = 2; //digit
+	static final int ukn = 3; //unknown
+	static final int eof = 0; //end of line 
+		
+	// Global declarations for variables  
+	static int cc; //characterClass 
+	static char curChar; //currentCharacter
+	static int count = 0;
+	static char[] lexeme = new char[100];
+	static int pos; //position
+	static int tkn; //token
+	static Scanner reader;
+	
+	// Token codes
+	static final int int_lit = 11;
+	static final int id = 12; //identify
+	//static final int assop = 13; //assign operation
+	static final int plus = 27; //add
+	static final int minus = 37; //subtract
+	static final int times = 47; //multiply
+	static final int div = 57; //divide 
+	static final int lpar = 67; //left parent
+	static final int rpar = 77; //right parent 
+	static final int cnd = 12; //conditional
+	
+	static int discover(char ch) 
+	{
+		count = 0;
+		lexeme[count] = curChar;
+		count++;
+		
+		switch (ch) 
+		{
+			case '+':
+				joinChar();
+				tkn = plus;
+				break;
+			case '-':
+				joinChar();
+				tkn = minus;
+				break;
+			case '*':
+				joinChar();
+				tkn = times;
+				break;
+			case '/':
+				joinChar();
+				tkn = div;
+				break;
+			case '(':
+				joinChar();
+				tkn = lpar;
+				break;
+			case ')':
+				joinChar();
+				tkn = rpar;
+				break;
+			default:
+				joinChar();
+				tkn = eof;
+				break;
+		}
+		return tkn;
+	}
+	
+	// Function declarations
+	//addChar method 
+		static void joinChar() 
+		{ 
+			if (pos <= 98) 
+			{
+				pos++;
+				curChar = lexeme[pos];
+			} 
+			else 
+			{
+				System.out.println("ERROR: SHORTEN THE LEXEME  \n");
+			}
+		}	
+		
+		//getChar method
+		static void snatchChar() 
+		{  
+			if (curChar != ';') 
+			{
+				if (Character.isLetter(curChar)) 
+				{
+					cc = lttr;
+					
+				} 
+				else if (Character.isDigit(curChar)) 
+				{
+					cc = dgt;
+				} 
+				else {
+					cc = ukn;
+				}
+			} 
+			else 
+			{
+				cc = eof;
+			}
+		}
+		
+		//getNonBlank method
+		static void getNB() {
+			while (Character.isWhitespace(curChar)) {
+				joinChar();
+			}
+			snatchChar();
+		}
+		
+		//lex method 
+		static int lexeme() 
+		{
+			count = 0;
+			getNB();
+			switch(cc) 
+			{
+			case lttr:
+				snatchChar();
+				while (cc == lttr || cc == dgt) 
+				{
+					lexeme[count] = curChar;
+					count++;
+					joinChar();
+					snatchChar();
+				}
+				tkn = id;
+				break;
+			case dgt:
+				int warning = 0;
+				snatchChar();
+				while (cc == dgt || cc == lttr) 
+				{
+					lexeme[count] = curChar;
+					count++;
+					joinChar();
+					snatchChar();
+					if (cc == lttr) 
+					{
+						warning++;
+					}
+				}
+				if (warning > 0) 
+				{
+					System.out.println("WARNING: BEGINNING WITH A NUMBER VARIABLE CAN CAUSE ERRORS WITH FINDING TOKENS");
+				}
+				tkn = int_lit;
+				break;
+			case ukn:
+				discover(curChar);
+				snatchChar();
+				break;
+			case eof:
+				tkn = eof;
+				lexeme[0] = 'E';
+				lexeme[1] = 'O';
+				lexeme[2] = 'F';
+				count = 3;
+				break;
+			}
+			char[] tst = new char[lexeme.length];
+			for (int i = 0; i < count; i++) 
+			{
+				tst[i] = lexeme[i];
+			}
+			String prntlex = new String(tst);
+			if (prntlex == "if") 
+			{
+				tkn = cnd;
+				System.out.println(tkn);
+			}
+			System.out.printf("Next token is: %d, Next lexeme is %s\n", tkn, prntlex);
+			return tkn;
+		}
+		
+	// Main driver
+	static void main() {
+		// Open the input data file and process its contents
+		try 
+		{
+			reader = new Scanner(new File("/Users/naavas/Desktop/Aliya's school stuff /Data Structures/ProgLangHw2.1/src/test.txt"));
+		} 
+		catch (FileNotFoundException e) 
+		{
+		}
+		 if (!reader.hasNext()) 
+		 {
+			 System.out.println("ERROR: FILE CAN'T BE OPENED/FOUND");
+		 } else {
+	         String line = reader.nextLine();
+	         lexeme = line.toCharArray();
+	         pos = 0;
+	         curChar = lexeme[pos];
+			 do {
+				 lexeme();
+			 } while (tkn != eof);
+		 }
+		 reader.close();
+	}
+	
+	public static void main(String[] args) {
+		main();
+	}
+	
+}
